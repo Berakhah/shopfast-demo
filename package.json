@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start -p 3000"
+    "start": "next start -p 3000",
+    "poc": "next build && node poc/run-all.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.5.1",
