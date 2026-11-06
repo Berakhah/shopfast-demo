@@ -1,5 +1,7 @@
 # ShopFast: intentionally vulnerable demo store
 
+![Sample audit: eight planted flaws, 3 Critical, 2 High, 3 Medium, all proven in a live run](docs/sample-audit-cover.png)
+
 **Do not deploy this publicly. Do not reuse this code.** ShopFast is a training
 fixture: a small Next.js 14 + Supabase + Stripe store with eight security flaws
 planted on purpose, each a pattern AI coding tools commonly produce. It backs the
