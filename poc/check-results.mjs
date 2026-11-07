@@ -13,6 +13,12 @@ const expect = [
   ['SF-06', /total_cents=50,/],
   ['SF-07', /access-control-allow-origin: https:\/\/attacker\.example/],
   ['SF-07', /access-control-allow-credentials: true/],
+  ['SF-09', /GET storage object \(as Bob\) -> HTTP 200, bytes=[1-9]\d*/],
+  ['SF-09', /Alice's receipt contents: ShopFast receipt — order 1042/],
+  ['SF-10', /Alice's row delivered to Bob: yes/],
+  ['SF-11', /direct SELECT invoices\?id=eq\.9001 as Bob -> 0 row\(s\)/],
+  ['SF-11', /Alice's invoice via RPC: id=9001 .* amount_cents=4900/],
+  ['SF-12', /order the tool returned: id=1042 .* shipping_address="12 Test Street, Testville"/],
 ]
 let failed = 0
 if (/^ERROR:/m.test(t)) { console.log('FAIL  runner reported an ERROR line'); failed++ }
@@ -20,5 +26,5 @@ for (const [id, re] of expect) {
   const ok = re.test(t); if (!ok) failed++
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${id}  ${re.source}`)
 }
-console.log(failed ? `\n${failed} check(s) failed` : '\nAll 6 runner-covered findings reproduced (SF-01, 02, 04, 05, 06, 07).')
+console.log(failed ? `\n${failed} check(s) failed` : '\nAll 10 runner-covered findings reproduced (SF-01, 02, 04, 05, 06, 07, 09, 10, 11, 12).')
 process.exit(failed ? 1 : 0)
