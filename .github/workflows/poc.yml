@@ -1,0 +1,61 @@
+name: proofs
+
+# Re-runs the ShopFast proofs of concept against a throwaway local Supabase
+# stack started inside the job. No real Supabase, Stripe or OpenAI account and
+# no repository secret is used: every key below is the local stack's own
+# development key, created and destroyed with the job.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 4 * * 1"   # weekly, so the badge keeps re-proving
+
+permissions:
+  contents: read
+
+jobs:
+  poc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start a local Supabase stack (applies supabase/migrations)
+        run: |
+          supabase init --force
+          supabase start -x studio,imgproxy,inbucket,edge-runtime,logflare,vector,supavisor,realtime,storage-api
+          supabase status -o env > supabase.env
+
+      - name: Write .env.local from the local stack
+        run: node poc/ci-env.mjs supabase.env > .env.local
+
+      - name: Install
+        run: npm ci
+
+      - name: Seed two test users and their orders
+        run: node poc/ci-seed.mjs
+
+      - name: Run every proof (builds the app, replays the attacks on localhost)
+        run: npm run poc
+
+      - name: Check each finding was actually reproduced
+        run: node poc/check-results.mjs poc/out/results.txt
+
+      - name: Keep the redacted results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: poc-results
+          path: poc/out/results.txt
+          if-no-files-found: warn
