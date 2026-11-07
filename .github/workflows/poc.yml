@@ -36,7 +36,7 @@ jobs:
           supabase init --force
           # realtime and storage-api are kept running: SF-09 needs Storage and
           # SF-10 needs Realtime. The rest stay excluded to keep the job light.
-          supabase start -x studio,imgproxy,inbucket,edge-runtime,logflare,vector,supavisor,realtime,storage-api
+          supabase start -x studio,imgproxy,inbucket,edge-runtime,logflare,vector,supavisor
           supabase status -o env > supabase.env
 
       - name: Write .env.local from the local stack

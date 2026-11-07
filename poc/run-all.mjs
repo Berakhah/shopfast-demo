@@ -177,7 +177,11 @@ try {
   const received = []
   const channel = bobSb.channel('sf10')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (p) => received.push(p.new))
-  await new Promise((resolve) => channel.subscribe((st) => { if (st === 'SUBSCRIBED') resolve() }))
+  const subState = await new Promise((resolve) => {
+    const t = setTimeout(() => resolve('TIMED_OUT'), 15000)
+    channel.subscribe((st) => { if (st !== 'JOINING') { clearTimeout(t); resolve(st) } })
+  })
+  out(`realtime subscription state: ${subState}`)
   await sleep(500)
   const { data: notif } = await rest('notifications', { method: 'POST',
     body: JSON.stringify({ user_id: aliceId, body: 'Your order 1042 has shipped (private to Alice)' }) })
