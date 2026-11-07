@@ -175,6 +175,8 @@ try {
   section('SF-10 A signed-in customer receives another customer\'s rows over Realtime')
   out('bob@shopfast.test subscribes to the notifications table over Realtime; we then insert a row for Alice')
   const received = []
+  const { data: bobSess } = await bobSb.auth.getSession()
+  bobSb.realtime.setAuth(bobSess.session?.access_token)
   const channel = bobSb.channel('sf10')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (p) => received.push(p.new))
   const subState = await new Promise((resolve) => {
@@ -182,11 +184,12 @@ try {
     channel.subscribe((st) => { if (st !== 'JOINING') { clearTimeout(t); resolve(st) } })
   })
   out(`realtime subscription state: ${subState}`)
-  await sleep(500)
-  const { data: notif } = await rest('notifications', { method: 'POST',
+  await sleep(2000)
+  const { status: notifStatus, body: notif } = await rest('notifications', { method: 'POST',
     body: JSON.stringify({ user_id: aliceId, body: 'Your order 1042 has shipped (private to Alice)' }) })
   const notifId = (notif || [])[0]?.id
-  for (let i = 0; i < 20 && !received.some((r) => r.id === notifId); i++) await sleep(250)
+  out(`insert as service role -> HTTP ${notifStatus}`)
+  for (let i = 0; i < 60 && !received.some((r) => r.id === notifId); i++) await sleep(250)
   await bobSb.removeChannel(channel)
   const got = received.find((r) => r.id === notifId)
   out(`inserted notification ${notifId} for Alice (user ${String(aliceId).slice(0, 8)}…)`)
