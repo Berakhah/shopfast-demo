@@ -1,5 +1,7 @@
 # ShopFast: intentionally vulnerable demo store
 
+[![proofs](https://github.com/Berakhah/shopfast-demo/actions/workflows/poc.yml/badge.svg?branch=main)](https://github.com/Berakhah/shopfast-demo/actions/workflows/poc.yml)
+
 ![Sample audit: eight planted flaws, 3 Critical, 2 High, 3 Medium, all proven in a live run](docs/sample-audit-cover.png)
 
 **Do not deploy this publicly. Do not reuse this code.** ShopFast is a training
@@ -35,17 +37,29 @@ Results: 8 findings (3 Critical, 2 High, 3 Medium), all 8 proven in a live run.
 
 ## Run the proofs yourself
 
-Needs Node 20+ and a throwaway Supabase project you own.
+**On GitHub, no setup:** the [proofs workflow](.github/workflows/poc.yml) starts a
+throwaway local Supabase stack inside the job, seeds two test users and their
+orders, runs `npm run poc`, and fails unless SF-01, 02, 04, 05, 06 and 07 are each
+reproduced ([`poc/check-results.mjs`](poc/check-results.mjs)). It runs on every push
+and weekly, uses no repository secrets, and keeps the redacted results as a
+download on each run. SF-03 (key in git history) and SF-08 (unlimited AI spend)
+are shown in the report, not by the runner.
 
-1. Apply `supabase/migrations/` to the throwaway project.
-2. Create `.env.local` with `NEXT_PUBLIC_SUPABASE_URL`,
-   `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and
-   `TEST_USER_PASSWORD`.
-3. `npm install`, then `npm run poc`. It builds the app, runs every proof against
-   `localhost` and writes redacted results to `poc/out/results.txt`.
+**On your machine:** needs Node 20+, Docker and the
+[Supabase CLI](https://supabase.com/docs/guides/local-development).
 
-Pause or delete the throwaway project when you're done: with these flaws it is
-open to anyone who has its URL.
+1. `supabase init && supabase start` (applies `supabase/migrations/` to a local
+   stack), then `supabase status -o env > supabase.env`.
+2. `node poc/ci-env.mjs supabase.env > .env.local`. This writes the Supabase URL and
+   keys, the planted `NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY` (SF-01), a test
+   password, and the settings that point Stripe and OpenAI at the local stand-ins.
+3. `npm install`, then `node poc/ci-seed.mjs` (creates Alice, Bob, and orders
+   1041 and 1042).
+4. `npm run poc`, then `node poc/check-results.mjs`. Redacted output is in
+   `poc/out/results.txt`.
+
+`supabase stop` when you're done. Don't point this at a hosted project: with these
+flaws it is open to anyone who has its URL.
 
 ## Get your own app audited
 
