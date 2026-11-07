@@ -6,7 +6,7 @@ name: proofs
 # development key, created and destroyed with the job.
 on:
   push:
-    branches: [main]
+    branches: [main, "ci/**"]
   pull_request:
   workflow_dispatch:
   schedule:
