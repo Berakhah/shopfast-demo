@@ -177,14 +177,18 @@ try {
   const received = []
   const { data: bobSess } = await bobSb.auth.getSession()
   bobSb.realtime.setAuth(bobSess.session?.access_token)
+  let pgReady = false
   const channel = bobSb.channel('sf10')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (p) => received.push(p.new))
+    .on('system', {}, (m) => { if (m?.extension === 'postgres_changes' && m?.status === 'ok') pgReady = true })
   const subState = await new Promise((resolve) => {
     const t = setTimeout(() => resolve('TIMED_OUT'), 15000)
     channel.subscribe((st) => { if (st !== 'JOINING') { clearTimeout(t); resolve(st) } })
   })
   out(`realtime subscription state: ${subState}`)
-  await sleep(2000)
+  for (let i = 0; i < 60 && !pgReady; i++) await sleep(500)
+  out(`postgres_changes listener ready: ${pgReady ? 'yes' : 'no (continuing anyway)'}`)
+  await sleep(1000)
   const { status: notifStatus, body: notif } = await rest('notifications', { method: 'POST',
     body: JSON.stringify({ user_id: aliceId, body: 'Your order 1042 has shipped (private to Alice)' }) })
   const notifId = (notif || [])[0]?.id
