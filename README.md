@@ -2,10 +2,7 @@
 
 [![proofs](https://github.com/Berakhah/shopfast-demo/actions/workflows/poc.yml/badge.svg?branch=main)](https://github.com/Berakhah/shopfast-demo/actions/workflows/poc.yml)
 
-![Sample audit: eight planted flaws, 3 Critical, 2 High, 3 Medium, all proven in a live run](docs/sample-audit-cover.png)
-
-> The cover image above predates SF-09..SF-12 and still says "eight planted
-> flaws"; the repo now has twelve (see the table and totals below).
+![Sample audit: twelve planted flaws, 3 Critical, 6 High, 3 Medium, all proven in a live run](docs/sample-audit-cover.png)
 
 **Do not deploy this publicly. Do not reuse this code.** ShopFast is a training
 fixture: a small Next.js 14 + Supabase + Stripe store with twelve security flaws
@@ -16,12 +13,12 @@ Every planted flaw is marked in the code with a `PLANTED SF-0n` comment.
 
 | ID | Planted flaw | Severity (CVSS 3.1) | Where |
 | --- | --- | --- | --- |
-| SF-01 | Service-role key shipped to the browser | Critical (9.1) | `lib/supabase.ts` |
+| SF-01 | Service-role key shipped to the browser | Critical (10.0) | `lib/supabase.ts` |
 | SF-02 | RLS off on `profiles` and `orders` | Critical (9.1) | `supabase/migrations/` |
-| SF-03 | Stripe secret key in git history (a fake test key) | Medium (5.3) | `.env`, first commit |
-| SF-04 | No ownership check on orders | Critical (9.1) | `app/api/orders/[id]` |
-| SF-05 | Stripe webhook signature never checked | High (8.2) | `app/api/stripe/webhook` |
-| SF-06 | Price taken from the browser at checkout | High (7.1) | `app/api/checkout` |
+| SF-03 | Stripe secret key in git history (a fake test key) | Critical (9.1) | `.env`, first commit |
+| SF-04 | No ownership check on orders | High (8.1) | `app/api/orders/[id]` |
+| SF-05 | Stripe webhook signature never checked | High (7.5) | `app/api/stripe/webhook` |
+| SF-06 | Price taken from the browser at checkout | Medium (6.5) | `app/api/checkout` |
 | SF-07 | CORS reflects any origin, cookies sent cross-site | Medium (6.5) | `middleware.ts`, `lib/supabase/server.ts` |
 | SF-08 | No limits on the AI chat endpoint | Medium (5.3) | `app/api/chat` |
 | SF-09 | `receipts` storage bucket readable by any signed-in user | High (7.7) | `supabase/migrations/` (storage.objects policy) |
@@ -49,10 +46,13 @@ customer's order.
 
 ## The report
 
-The full findings report (plain-English summary, a CVSS 3.1 score, proof and code
-fix for each of the eight findings, and a fix-today / this-week / before-launch
-roadmap) is the first item in my
-[Upwork portfolio](https://www.upwork.com/freelancers/~01645da719eb4829ed).
+The full findings report covers all twelve findings: a plain-English summary, a
+CVSS 3.1 score and vector, the proof and the code fix for each, and a fix-today /
+this-week / before-launch roadmap. Read it here:
+[docs/ShopFast-Sample-Security-Audit.pdf](docs/ShopFast-Sample-Security-Audit.pdf).
+It is also the first item in my
+[Upwork portfolio](https://www.upwork.com/freelancers/~01645da719eb4829ed). The
+scores in the table above are the ones in the report.
 
 Results: 12 findings (3 Critical, 6 High, 3 Medium), all 12 demonstrated — ten
 reproduced by the runner in a live CI run, SF-03 and SF-08 by the steps below.
