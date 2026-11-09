@@ -4,6 +4,24 @@
 
 ![Sample audit: twelve planted flaws, 3 Critical, 6 High, 3 Medium, all proven in a live run](docs/sample-audit-cover.png)
 
+## How I'd audit your app
+
+ShopFast is the worked example. The same review, on your Lovable, Bolt, Cursor or
+Next.js + Supabase app:
+
+1. **Scope.** You sign the [scope and authorisation form](https://berakhah.github.io/scope.html);
+   nothing is tested outside it.
+2. **Review.** RLS and storage policies, service-role key exposure, `SECURITY DEFINER`
+   functions, webhook verification, server-trusted prices, and any AI tool that acts
+   on a model-supplied id: the twelve patterns in the table below.
+3. **Proof.** Every finding ships with a reproduction you can rerun and the code fix,
+   scored with CVSS 3.1, in a report like
+   [the ShopFast sample](docs/ShopFast-Sample-Security-Audit.pdf).
+
+**[Hire me on Upwork](https://www.upwork.com/freelancers/~01645da719eb4829ed)** ·
+[sample report (PDF)](docs/ShopFast-Sample-Security-Audit.pdf) ·
+[other work](https://berakhah.github.io)
+
 **Do not deploy this publicly. Do not reuse this code.** ShopFast is a training
 fixture: a small Next.js 14 + Supabase + Stripe store with twelve security flaws
 planted on purpose, each a pattern AI coding tools commonly produce. It backs the
@@ -105,7 +123,5 @@ flaws it is open to anyone who has its URL.
 
 ## Get your own app audited
 
-This is the review I offer for Lovable, Bolt, Cursor and Next.js + Supabase apps
-before launch.
-[Hire me on Upwork](https://www.upwork.com/freelancers/~01645da719eb4829ed), or
-see [my other work](https://berakhah.github.io).
+See [How I'd audit your app](#how-id-audit-your-app) above, or
+[hire me on Upwork](https://www.upwork.com/freelancers/~01645da719eb4829ed).
