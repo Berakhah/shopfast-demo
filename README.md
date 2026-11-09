@@ -1,8 +1,10 @@
 # ShopFast: intentionally vulnerable demo store
 
-[![proofs](https://github.com/Berakhah/shopfast-demo/actions/workflows/poc.yml/badge.svg?branch=main)](https://github.com/Berakhah/shopfast-demo/actions/workflows/poc.yml)
+[![proofs](https://github.com/Berakhah/shopfast-demo/actions/workflows/poc.yml/badge.svg?branch=main)](https://github.com/Berakhah/shopfast-demo/actions/workflows/poc.yml) [![license](https://img.shields.io/github/license/Berakhah/shopfast-demo)](LICENSE)
 
 ![Sample audit: twelve planted flaws, 3 Critical, 6 High, 3 Medium, all proven in a live run](docs/sample-audit-cover.png)
+
+**Status: finished.** Twelve planted flaws. CI reproduces ten of them on every push and weekly; SF-03 and SF-08 are shown by the steps under [Run the proofs yourself](#run-the-proofs-yourself).
 
 ## How I'd audit your app
 
@@ -125,3 +127,13 @@ flaws it is open to anyone who has its URL.
 
 See [How I'd audit your app](#how-id-audit-your-app) above, or
 [hire me on Upwork](https://www.upwork.com/freelancers/~01645da719eb4829ed).
+
+## Security
+
+The twelve planted flaws are not bugs to report. For anything else, such as a real credential
+or a problem in the CI workflow, see [SECURITY.md](SECURITY.md).
+
+## License
+
+[Apache-2.0](LICENSE). The licence lets you copy and study this code; it doesn't make the code
+safe to deploy. It has twelve known security flaws on purpose.
