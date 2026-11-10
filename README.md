@@ -2,6 +2,10 @@
 
 [![proofs](https://github.com/Berakhah/shopfast-demo/actions/workflows/poc.yml/badge.svg?branch=main)](https://github.com/Berakhah/shopfast-demo/actions/workflows/poc.yml) [![license](https://img.shields.io/github/license/Berakhah/shopfast-demo)](LICENSE)
 
+[![Demo: the attack replay console stepping through the planted flaws](docs/demo-preview.gif)](https://berakhah.github.io/work/shopfast-demo.html#demo)
+
+**▶ [Watch the 1:42 walkthrough](https://berakhah.github.io/work/shopfast-demo.html#demo)**: all twelve findings replayed, the run telemetry, the findings ledger and the fix roadmap. ([MP4 in this repo](docs/shopfast-demo.mp4))
+
 ![Sample audit: twelve planted flaws, 3 Critical, 6 High, 3 Medium, all proven in a live run](docs/sample-audit-cover.png)
 
 **Status: finished.** Twelve planted flaws. CI reproduces ten of them on every push and weekly; SF-03 and SF-08 are shown by the steps under [Run the proofs yourself](#run-the-proofs-yourself).
