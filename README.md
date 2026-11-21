@@ -2,9 +2,9 @@
 
 [![proofs](https://github.com/Berakhah/shopfast-demo/actions/workflows/poc.yml/badge.svg?branch=main)](https://github.com/Berakhah/shopfast-demo/actions/workflows/poc.yml) [![license](https://img.shields.io/github/license/Berakhah/shopfast-demo)](LICENSE)
 
-[![Demo: the attack replay console stepping through the planted flaws](docs/demo-preview.gif)](https://berakhah.github.io/work/shopfast-demo.html#demo)
+[![Demo: the attack replay console stepping through the planted flaws](docs/demo-preview.gif)](docs/shopfast-demo.mp4)
 
-**▶ [Watch the 1:42 walkthrough](https://berakhah.github.io/work/shopfast-demo.html#demo)**: all twelve findings replayed, the run telemetry, the findings ledger and the fix roadmap. ([MP4 in this repo](docs/shopfast-demo.mp4))
+**▶ [Watch the 1:42 walkthrough](docs/shopfast-demo.mp4)**: all twelve findings replayed, the run telemetry, the findings ledger and the fix roadmap.
 
 ![Sample audit: twelve planted flaws, 3 Critical, 6 High, 3 Medium, all proven in a live run](docs/sample-audit-cover.png)
 
@@ -15,7 +15,7 @@
 ShopFast is the worked example. The same review, on your Lovable, Bolt, Cursor or
 Next.js + Supabase app:
 
-1. **Scope.** You sign the [scope and authorisation form](https://berakhah.github.io/scope.html);
+1. **Scope.** You sign a scope and authorisation form;
    nothing is tested outside it.
 2. **Review.** RLS and storage policies, service-role key exposure, `SECURITY DEFINER`
    functions, webhook verification, server-trusted prices, and any AI tool that acts
@@ -25,8 +25,7 @@ Next.js + Supabase app:
    [the ShopFast sample](docs/ShopFast-Sample-Security-Audit.pdf).
 
 **[Hire me on Upwork](https://www.upwork.com/freelancers/~01645da719eb4829ed)** ·
-[sample report (PDF)](docs/ShopFast-Sample-Security-Audit.pdf) ·
-[other work](https://berakhah.github.io)
+[sample report (PDF)](docs/ShopFast-Sample-Security-Audit.pdf)
 
 **Do not deploy this publicly. Do not reuse this code.** ShopFast is a training
 fixture: a small Next.js 14 + Supabase + Stripe store with twelve security flaws
